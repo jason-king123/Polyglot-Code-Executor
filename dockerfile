@@ -23,21 +23,24 @@ RUN mkdir -p $GOPATH/bin
 ENV PATH=$PATH:$GOPATH/bin
 
 # 安装Java环境
-RUN apt-get update && apt-get install -y default-jdk
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jdk && \
+    rm -rf /var/lib/apt/lists/* && \
+    java --version
 
 # 安装Node.js环境
 
 ENV NODE_VERSION=14
-RUN curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
-    && tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
-    && rm "node-v$NODE_VERSION-linux-x64.tar.xz"
+# RUN curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
+#     && tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
+#     && rm "node-v$NODE_VERSION-linux-x64.tar.xz"
 
 # 复制 Node.js 压缩包到镜像中
-# COPY ./dependencies/node-v14.17.0-linux-x64.tar.xz /usr/local/
+COPY ./dependencies/node-v14.17.0-linux-x64.tar.xz /usr/local/
 
-# # 解压 Node.js 压缩包
-# RUN tar -xJf /usr/local/node-v14.17.0-linux-x64.tar.xz -C /usr/local --strip-components=1 --no-same-owner \
-#     && rm /usr/local/node-v14.17.0-linux-x64.tar.xz
+# 解压 Node.js 压缩包
+RUN tar -xJf /usr/local/node-v14.17.0-linux-x64.tar.xz -C /usr/local --strip-components=1 --no-same-owner \
+    && rm /usr/local/node-v14.17.0-linux-x64.tar.xz
 
 # 设置 Node.js 环境变量
 ENV PATH=/usr/local/bin:$PATH
@@ -62,12 +65,12 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
     && chmod -R a+w $RUSTUP_HOME $CARGO_HOME
 
 # 安装Swift环境
-RUN apt-get update && apt-get install -y libswift-dev swiftlang
-# # 下载 Swift 压缩包
-# COPY ./dependencies/swift-6.0-RELEASE-ubuntu20.04.tar.gz /usr/local/
-# # 解压 Swift 压缩包
-# RUN tar -xzf /usr/local/swift-6.0-RELEASE-ubuntu20.04.tar.gz -C /usr/local --strip-components=1 \
-#     && rm /usr/local/swift-6.0-RELEASE-ubuntu20.04.tar.gz
+# RUN apt-get update && apt-get install -y libswift-dev swiftlang
+# 下载 Swift 压缩包
+COPY ./dependencies/swift-6.0-RELEASE-ubuntu20.04.tar.gz /usr/local/
+# 解压 Swift 压缩包
+RUN tar -xzf /usr/local/swift-6.0-RELEASE-ubuntu20.04.tar.gz -C /usr/local --strip-components=1 \
+    && rm /usr/local/swift-6.0-RELEASE-ubuntu20.04.tar.gz
 # 设置 Swift 环境变量
 ENV PATH="/usr/local/bin:${PATH}"
 

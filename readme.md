@@ -13,13 +13,14 @@ Welcome to the Polyglot Code Executor, a versatile and powerful tool designed to
 - **Easy Deployment**: Simple deployment process with both local and Docker options.
 - **Performance Metrics**: Receive detailed feedback on the execution time and memory usage of your code.
 - **Accuracy**: Ensures the correctness of your code by comparing it against expected results.
+- **Parallel Execution**: Capable of running code in parallel, enhancing efficiency.
+
 
 ## Existing Problems to be Solved
 
 We are actively addressing the following issues to improve the Polyglot Code Executor:
 
 - **C# (csc)**: No such file or directory: 'csc'.
-- **Java**: Java programs are not producing output.
 - **Kotlin**: Command '['kotlinc', 'tmp/tmprx55xua7/Main.kt', '-include-runtime', '-d', 'tmp/tmprx55xua7']' returned non-zero exit status 2..
 - **Swift**: No such file or directory: 'swiftc'.
 - **Rust**: No such file or directory: 'rustc'.

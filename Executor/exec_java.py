@@ -22,7 +22,7 @@ class JavaExecutor:
             file.write(code)
         subprocess.run(['javac', filename], check=True)
 
-        return executable
+        return class_name
 
     def monitor_memory(self, child_process, result):
         max_memory = 0
@@ -35,10 +35,11 @@ class JavaExecutor:
             time.sleep(0.05)
         result['max_memory'] = max_memory
 
-    def measure_runtime_and_memory(self, class_name, test_data, timeout=5):
+    def measure_runtime_and_memory(self, class_name, tmpdirname,  test_data, timeout=5):
         start_time = resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
+        classpath = os.path.abspath(tmpdirname)
 
-        process = subprocess.Popen(['java', class_name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=self.tmp_dir)
+        process = subprocess.Popen(['java', '-cp', classpath, class_name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         child_pid = process.pid
         child_process = psutil.Process(child_pid)
 
@@ -47,7 +48,7 @@ class JavaExecutor:
         monitor_thread = threading.Thread(target=self.monitor_memory, args=(child_process, result))
         monitor_thread.start()
 
-        stdout, _ = process.communicate(input=test_data, timeout=timeout)
+        stdout, stderr = process.communicate(input=test_data, timeout=timeout)
         monitor_thread.join()
 
         end_time = resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
@@ -56,7 +57,7 @@ class JavaExecutor:
         runtime = (end_time - start_time) * 1000  # ms
         runmemory = max_memory / 1024  # KB
 
-        return runtime, runmemory, stdout
+        return runtime, runmemory, stdout, stderr
 
     def code_test(self, code, tests, answers):
         if len(tests) != len(answers):
@@ -78,7 +79,7 @@ class JavaExecutor:
 
                 for test_data, answer in zip(tests, answers):
                     try:
-                        runtime, runmemory, stdout = self.measure_runtime_and_memory(class_name, test_data)
+                        runtime, runmemory, stdout, stderr = self.measure_runtime_and_memory(class_name, tmpdirname, test_data)
 
                         actual_result = stdout.strip()
                         outputs.append(actual_result)
@@ -106,7 +107,7 @@ class JavaExecutor:
                         }, indent=4)
 
                 result = {
-                    "exec_outcome": "Success" if wrong_cases == 0 else "Wrong answer",
+                    "exec_outcome": "Success" if wrong_cases == 0 else f"Wrong answer.{stderr}",
                     "wrong_cases": wrong_cases,
                     "runtime": runtimes,
                     "runmemory": memories,
